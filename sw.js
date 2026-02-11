@@ -1,10 +1,16 @@
 // sw.js
-const CACHE_NAME = 'pfd-cache-v1';
+const CACHE_NAME = 'pfd-cache-v2';
 const ASSETS = [
     './',
     './index.html',
     './manifest.webmanifest',
-    './sw.js'
+    './sw.js',
+    './assets/css/style.css',
+    './assets/js/main.js',
+    './assets/js/pfd.js',
+    './assets/js/sensors.js',
+    './assets/js/sw-register.js',
+    './assets/js/utils.js'
 ];
 
 self.addEventListener('install', event => {
