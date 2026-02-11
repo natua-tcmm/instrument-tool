@@ -5,9 +5,31 @@ import { $, secure } from "./utils.js";
 
 registerServiceWorker();
 
+let angleEnabled = false;
+
 const pfd = createPfd($("pfd"));
-const orientationSensor = createOrientationSensor({ pfd });
+const orientationSensor = createOrientationSensor({
+	pfd,
+	isAngleEnabled: () => angleEnabled,
+});
 const geoSensor = createGeoSensor();
+
+const setAngleEnabled = (enabled) => {
+	angleEnabled = !!enabled;
+	$("angleBtn").textContent = angleEnabled ? "ANGLE ON" : "ANGLE OFF";
+	pfd.setActive(angleEnabled);
+
+	if (!angleEnabled) {
+		$("angPitch").textContent = "-";
+		$("angRoll").textContent = "-";
+	}
+};
+
+setAngleEnabled(false);
+
+$("angleBtn").addEventListener("click", () => {
+	setAngleEnabled(!angleEnabled);
+});
 
 $("zeroBtn").addEventListener("click", () => {
 	pfd.zero();

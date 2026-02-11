@@ -4,11 +4,23 @@ export function createPfd(canvas) {
     let gamma = 0;
     let beta0 = 0;
     let gamma0 = 0;
+    let active = true;
 
     const draw = () => {
         const w = canvas.clientWidth;
         const h = canvas.clientHeight;
         ctx.clearRect(0, 0, w, h);
+
+        if (!active) {
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, w, h);
+            ctx.fillStyle = '#fff';
+            ctx.font = `600 ${Math.max(16, Math.round(h * 0.08))}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('停止中', w / 2, h / 2);
+            return;
+        }
 
         const pitchPxPerDeg = h / 120;
         const y = h / 2 + beta * pitchPxPerDeg;
@@ -43,6 +55,13 @@ export function createPfd(canvas) {
     const setAngles = (nextBeta, nextGamma) => {
         beta = nextBeta;
         gamma = nextGamma;
+        if (active) {
+            draw();
+        }
+    };
+
+    const setActive = (nextActive) => {
+        active = !!nextActive;
         draw();
     };
 
@@ -61,6 +80,7 @@ export function createPfd(canvas) {
 
     return {
         setAngles,
+        setActive,
         zero,
         normalize
     };

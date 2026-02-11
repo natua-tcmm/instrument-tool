@@ -11,7 +11,7 @@ function haversine(lat1, lon1, lat2, lon2) {
 	return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-export function createOrientationSensor({ pfd }) {
+export function createOrientationSensor({ pfd, isAngleEnabled }) {
 	const start = async () => {
 		if (!window.DeviceOrientationEvent) {
 			return;
@@ -32,6 +32,10 @@ export function createOrientationSensor({ pfd }) {
 			"deviceorientation",
 			(event) => {
 				const normalized = pfd.normalize(event.beta ?? 0, event.gamma ?? 0);
+				if (!isAngleEnabled()) {
+					return;
+				}
+
 				pfd.setAngles(normalized.beta, normalized.gamma);
 				$("angPitch").textContent = fmt(normalized.beta, 1);
 				$("angRoll").textContent = fmt(normalized.gamma, 1);
@@ -58,7 +62,7 @@ export function createGeoSensor() {
 		}
 
 		const options = { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 };
-		navigator.geolocation.watchPosition(onGeo, () => {}, options);
+		navigator.geolocation.watchPosition(onGeo, () => { }, options);
 	};
 
 	const onGeo = (position) => {
