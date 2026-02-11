@@ -12,9 +12,8 @@ export function createPfd(canvas) {
         ctx.clearRect(0, 0, w, h);
 
         if (!active) {
-            ctx.fillStyle = '#111';
-            ctx.fillRect(0, 0, w, h);
-            ctx.fillStyle = '#fff';
+            ctx.clearRect(0, 0, w, h);
+            ctx.fillStyle = '#aaa';
             ctx.font = `600 ${Math.max(16, Math.round(h * 0.08))}px sans-serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
