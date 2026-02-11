@@ -16,7 +16,7 @@ const geoSensor = createGeoSensor();
 
 const setAngleEnabled = (enabled) => {
 	angleEnabled = !!enabled;
-	$("angleBtn").textContent = angleEnabled ? "ANGLE ON" : "ANGLE OFF";
+	$("angleBtn").textContent = angleEnabled ? "ANGLE OFF" : "ANGLE ON";
 	pfd.setActive(angleEnabled);
 
 	if (!angleEnabled) {

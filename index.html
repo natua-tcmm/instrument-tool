@@ -17,7 +17,9 @@
         <div class="grid">
             <!-- 左上：人工地平 -->
             <section style="grid-column:1">
-                <canvas id="pfd"></canvas>
+                <div id="pfdFrame">
+                    <canvas id="pfd"></canvas>
+                </div>
             </section>
 
             <!-- 右上：ANGLE -->
@@ -58,7 +60,7 @@
             <section style="grid-column:1 / span 2">
                 <div class="btns">
                     <button id="startBtn">START</button>
-                    <button id="angleBtn">ANGLE OFF</button>
+                    <button id="angleBtn">ANGLE ON</button>
                     <button id="zeroBtn" disabled>ZERO</button>
                 </div>
                 <div class="note" id="env">HTTPS で開いてください。初回オンラインで読み込むと以後はオフライン動作します。</div>

@@ -63,14 +63,25 @@ main {
     opacity: .9;
 }
 
-/* 人工地平：キャンバスのCSS枠のみ */
-#pfd {
+/* 人工地平：外枠はコンテナ側 */
+#pfdFrame {
     display: block;
     width: 100%;
     aspect-ratio: 1/1;
     background: #fff;
     border: 3px solid #000;
     border-radius: 8px;
+    overflow: hidden;
+}
+
+#pfd {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+#pfd.is-hidden {
+    visibility: hidden;
 }
 
 /* ボタン行 */
