@@ -120,7 +120,7 @@ export function createGeoSensor() {
 				: "−"
 			: "";
 		$("vspdFts").textContent = Number.isFinite(verticalSpeed)
-			? `${sign}${fmt(Math.abs(verticalSpeed) * M_TO_FT, 1)}`
+			? `${sign}${fmt(Math.abs(verticalSpeed) * M_TO_FT * 60, 0)}`
 			: "—";
 		$("vspdMs").textContent = Number.isFinite(verticalSpeed)
 			? `${sign}${fmt(Math.abs(verticalSpeed), 2)}`

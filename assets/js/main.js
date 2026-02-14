@@ -35,19 +35,15 @@ $("zeroBtn").addEventListener("click", () => {
 	pfd.zero();
 });
 
-$("startBtn").addEventListener("click", async () => {
+const bootSensors = async () => {
 	if (!secure()) {
-		alert("HTTPS で開いてください（または localhost）。");
+		$("env").textContent = "HTTPS で開いてください（または localhost）";
 		return;
 	}
 
-	$("startBtn").disabled = true;
 	$("env").textContent = "計測中です（オフライン対応）";
-
 	await orientationSensor.start();
 	geoSensor.start();
-});
+};
 
-if (!secure()) {
-	$("env").textContent = "HTTPS で開いてください（または localhost）";
-}
+bootSensors();
