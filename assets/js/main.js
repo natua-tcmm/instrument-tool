@@ -13,12 +13,6 @@ const appState = {
 	angle: "off",
 };
 
-const setGpsRetryEnabled = (enabled) => {
-	const btn = $("gpsRetryBtn");
-	if (!btn) return;
-	btn.disabled = !enabled;
-};
-
 const gpsLabel = {
 	idle: "GPS: 待機中",
 	watching: "GPS: 取得待ち",
@@ -58,7 +52,6 @@ const orientationSensor = createOrientationSensor({
 const geoSensor = createGeoSensor({
 	onFirstFix: () => {
 		appState.gps = "fixed";
-		setGpsRetryEnabled(false);
 		renderStatus();
 	},
 	onError: ({ status }) => {
@@ -71,12 +64,10 @@ const geoSensor = createGeoSensor({
 		} else {
 			appState.gps = "error";
 		}
-		setGpsRetryEnabled(true);
 		renderStatus();
 	},
 	onUnsupported: () => {
 		appState.gps = "unsupported";
-		setGpsRetryEnabled(false);
 		renderStatus();
 	},
 });
@@ -93,7 +84,6 @@ const setAngleEnabled = (enabled) => {
 };
 
 setAngleEnabled(false);
-setGpsRetryEnabled(false);
 renderStatus();
 
 window.addEventListener("online", () => {
@@ -143,19 +133,6 @@ $("zeroBtn").addEventListener("click", () => {
 	pfd.zero();
 });
 
-$("gpsRetryBtn")?.addEventListener("click", () => {
-	setGpsRetryEnabled(false);
-	appState.gps = "watching";
-	renderStatus();
-
-	const geoResult = geoSensor.retry();
-	if (geoResult?.status === "unsupported") {
-		appState.gps = "unsupported";
-		setGpsRetryEnabled(false);
-		renderStatus();
-	}
-});
-
 const bootSensors = async () => {
 	appState.secure = secure();
 	if (!appState.secure) {
@@ -167,7 +144,6 @@ const bootSensors = async () => {
 	const geoResult = geoSensor.start();
 	if (geoResult?.status === "unsupported") {
 		appState.gps = "unsupported";
-		setGpsRetryEnabled(false);
 	}
 	renderStatus();
 };
