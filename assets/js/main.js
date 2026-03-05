@@ -27,8 +27,32 @@ const setAngleEnabled = (enabled) => {
 
 setAngleEnabled(false);
 
-$("angleBtn").addEventListener("click", () => {
-	setAngleEnabled(!angleEnabled);
+$("angleBtn").addEventListener("click", async () => {
+	if (angleEnabled) {
+		setAngleEnabled(false);
+		$("env").textContent = "GPS は計測中です。ANGLE は停止中です。";
+		return;
+	}
+
+	const result = await orientationSensor.start();
+	if (result?.ok) {
+		setAngleEnabled(true);
+		$("env").textContent = "GPS / ANGLE を計測中です（オフライン対応）";
+		return;
+	}
+
+	setAngleEnabled(false);
+	if (result?.status === "denied") {
+		$("env").textContent = "ANGLE 権限が拒否されました。ブラウザ設定で許可してください。";
+		return;
+	}
+
+	if (result?.status === "unsupported") {
+		$("env").textContent = "この端末/ブラウザは ANGLE センサーに対応していません。";
+		return;
+	}
+
+	$("env").textContent = "ANGLE の開始に失敗しました。再度 ANGLE ON を押してください。";
 });
 
 $("zeroBtn").addEventListener("click", () => {
@@ -41,8 +65,7 @@ const bootSensors = async () => {
 		return;
 	}
 
-	$("env").textContent = "計測中です（オフライン対応）";
-	await orientationSensor.start();
+	$("env").textContent = "GPS は計測中です。ANGLE は ANGLE ON で開始してください。";
 	geoSensor.start();
 };
 

@@ -12,38 +12,51 @@ function haversine(lat1, lon1, lat2, lon2) {
 }
 
 export function createOrientationSensor({ pfd, isAngleEnabled }) {
+	let started = false;
+	let permissionGranted = false;
+
 	const start = async () => {
 		if (!window.DeviceOrientationEvent) {
-			return;
+			return { ok: false, status: "unsupported" };
 		}
 
 		try {
-			if (typeof DeviceOrientationEvent.requestPermission === "function") {
+			if (
+				typeof DeviceOrientationEvent.requestPermission === "function" &&
+				!permissionGranted
+			) {
 				const permission = await DeviceOrientationEvent.requestPermission();
 				if (permission !== "granted") {
-					return;
+					return { ok: false, status: "denied" };
 				}
+				permissionGranted = true;
+			} else {
+				permissionGranted = true;
 			}
 		} catch (error) {
-			// iOS 以外では requestPermission が存在しないことがある
+			return { ok: false, status: "error", error };
 		}
 
-		window.addEventListener(
-			"deviceorientation",
-			(event) => {
-				const normalized = pfd.normalize(event.beta ?? 0, event.gamma ?? 0);
-				if (!isAngleEnabled()) {
-					return;
-				}
+		if (!started) {
+			window.addEventListener(
+				"deviceorientation",
+				(event) => {
+					const normalized = pfd.normalize(event.beta ?? 0, event.gamma ?? 0);
+					if (!isAngleEnabled()) {
+						return;
+					}
 
-				pfd.setAngles(normalized.beta, normalized.gamma);
-				$("angPitch").textContent = fmt(normalized.beta, 1);
-				$("angRoll").textContent = fmt(normalized.gamma, 1);
-			},
-			true,
-		);
+					pfd.setAngles(normalized.beta, normalized.gamma);
+					$("angPitch").textContent = fmt(normalized.beta, 1);
+					$("angRoll").textContent = fmt(normalized.gamma, 1);
+				},
+				true,
+			);
+			started = true;
+		}
 
 		$("zeroBtn").disabled = false;
+		return { ok: true, status: "granted" };
 	};
 
 	return { start };
