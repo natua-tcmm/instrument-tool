@@ -76,13 +76,22 @@ export function createGeoSensor({ onFirstFix, onError, onUnsupported } = {}) {
 			return { ok: false, status: "unsupported" };
 		}
 
-		const options = { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 };
+		// 機内モード時はGNSSのコールドスタートで初回測位に時間がかかるため、
+		// timeoutを長めにして即エラー扱いを避ける
+		const options = {
+			enableHighAccuracy: true,
+			maximumAge: 30000,
+			timeout: 120000,
+		};
 		navigator.geolocation.watchPosition(onGeo, onGeoError, options);
 		return { ok: true, status: "watching" };
 	};
 
 	const onGeoError = (error) => {
-		const status = error?.code === 1 ? "denied" : "error";
+		let status = "error";
+		if (error?.code === 1) status = "denied";
+		if (error?.code === 2) status = "unavailable";
+		if (error?.code === 3) status = "timeout";
 		onError?.({ status, error });
 	};
 
