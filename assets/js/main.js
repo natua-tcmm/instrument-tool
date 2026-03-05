@@ -30,21 +30,15 @@ const angleLabel = {
 	error: "ANGLE: 開始失敗",
 };
 
-const networkLabel = {
-	online: "ネットワーク: オンライン",
-	offline: "ネットワーク: オフライン（キャッシュ動作）",
-};
-
 const renderStatus = () => {
 	if (!appState.secure) {
-		$("env").textContent = "HTTPS で開いてください（または localhost）";
+		$("env").textContent = "HTTPSで開いてください。";
 		return;
 	}
 
 	$("env").textContent = [
 		gpsLabel[appState.gps] ?? gpsLabel.idle,
 		angleLabel[appState.angle] ?? angleLabel.off,
-		networkLabel[appState.network] ?? networkLabel.online,
 	].join(" / ");
 };
 
