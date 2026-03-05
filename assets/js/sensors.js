@@ -62,23 +62,36 @@ export function createOrientationSensor({ pfd, isAngleEnabled }) {
 	return { start };
 }
 
-export function createGeoSensor() {
+export function createGeoSensor({ onFirstFix, onError, onUnsupported } = {}) {
 	let lastLL = null;
 	let lastAlt = null;
 	let lastTime = null;
 	let emaVspd = null;
+	let fixed = false;
 	const VSPD_ALPHA = 0.25;
 
 	const start = () => {
 		if (!("geolocation" in navigator)) {
-			return;
+			onUnsupported?.();
+			return { ok: false, status: "unsupported" };
 		}
 
 		const options = { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 };
-		navigator.geolocation.watchPosition(onGeo, () => { }, options);
+		navigator.geolocation.watchPosition(onGeo, onGeoError, options);
+		return { ok: true, status: "watching" };
+	};
+
+	const onGeoError = (error) => {
+		const status = error?.code === 1 ? "denied" : "error";
+		onError?.({ status, error });
 	};
 
 	const onGeo = (position) => {
+		if (!fixed) {
+			fixed = true;
+			onFirstFix?.(position);
+		}
+
 		const c = position.coords;
 
 		// 速度（未提供なら前回位置から推定）

@@ -6,13 +6,67 @@ import { $, secure } from "./utils.js";
 registerServiceWorker();
 
 let angleEnabled = false;
+const appState = {
+	secure: secure(),
+	network: navigator.onLine ? "online" : "offline",
+	gps: "idle",
+	angle: "off",
+};
+
+const gpsLabel = {
+	idle: "GPS: 待機中",
+	watching: "GPS: 取得待ち",
+	fixed: "GPS: 計測中",
+	denied: "GPS: 権限拒否",
+	unsupported: "GPS: 非対応",
+	error: "GPS: 取得エラー",
+};
+
+const angleLabel = {
+	off: "ANGLE: 停止中（ANGLE ONで開始）",
+	on: "ANGLE: 計測中",
+	denied: "ANGLE: 権限拒否",
+	unsupported: "ANGLE: 非対応",
+	error: "ANGLE: 開始失敗",
+};
+
+const networkLabel = {
+	online: "ネットワーク: オンライン",
+	offline: "ネットワーク: オフライン（キャッシュ動作）",
+};
+
+const renderStatus = () => {
+	if (!appState.secure) {
+		$("env").textContent = "HTTPS で開いてください（または localhost）";
+		return;
+	}
+
+	$("env").textContent = [
+		gpsLabel[appState.gps] ?? gpsLabel.idle,
+		angleLabel[appState.angle] ?? angleLabel.off,
+		networkLabel[appState.network] ?? networkLabel.online,
+	].join(" / ");
+};
 
 const pfd = createPfd($("pfd"));
 const orientationSensor = createOrientationSensor({
 	pfd,
 	isAngleEnabled: () => angleEnabled,
 });
-const geoSensor = createGeoSensor();
+const geoSensor = createGeoSensor({
+	onFirstFix: () => {
+		appState.gps = "fixed";
+		renderStatus();
+	},
+	onError: ({ status }) => {
+		appState.gps = status === "denied" ? "denied" : "error";
+		renderStatus();
+	},
+	onUnsupported: () => {
+		appState.gps = "unsupported";
+		renderStatus();
+	},
+});
 
 const setAngleEnabled = (enabled) => {
 	angleEnabled = !!enabled;
@@ -26,33 +80,49 @@ const setAngleEnabled = (enabled) => {
 };
 
 setAngleEnabled(false);
+renderStatus();
+
+window.addEventListener("online", () => {
+	appState.network = "online";
+	renderStatus();
+});
+
+window.addEventListener("offline", () => {
+	appState.network = "offline";
+	renderStatus();
+});
 
 $("angleBtn").addEventListener("click", async () => {
 	if (angleEnabled) {
 		setAngleEnabled(false);
-		$("env").textContent = "GPS は計測中です。ANGLE は停止中です。";
+		appState.angle = "off";
+		renderStatus();
 		return;
 	}
 
 	const result = await orientationSensor.start();
 	if (result?.ok) {
 		setAngleEnabled(true);
-		$("env").textContent = "GPS / ANGLE を計測中です（オフライン対応）";
+		appState.angle = "on";
+		renderStatus();
 		return;
 	}
 
 	setAngleEnabled(false);
 	if (result?.status === "denied") {
-		$("env").textContent = "ANGLE 権限が拒否されました。ブラウザ設定で許可してください。";
+		appState.angle = "denied";
+		renderStatus();
 		return;
 	}
 
 	if (result?.status === "unsupported") {
-		$("env").textContent = "この端末/ブラウザは ANGLE センサーに対応していません。";
+		appState.angle = "unsupported";
+		renderStatus();
 		return;
 	}
 
-	$("env").textContent = "ANGLE の開始に失敗しました。再度 ANGLE ON を押してください。";
+	appState.angle = "error";
+	renderStatus();
 });
 
 $("zeroBtn").addEventListener("click", () => {
@@ -60,13 +130,18 @@ $("zeroBtn").addEventListener("click", () => {
 });
 
 const bootSensors = async () => {
-	if (!secure()) {
-		$("env").textContent = "HTTPS で開いてください（または localhost）";
+	appState.secure = secure();
+	if (!appState.secure) {
+		renderStatus();
 		return;
 	}
 
-	$("env").textContent = "GPS は計測中です。ANGLE は ANGLE ON で開始してください。";
-	geoSensor.start();
+	appState.gps = "watching";
+	const geoResult = geoSensor.start();
+	if (geoResult?.status === "unsupported") {
+		appState.gps = "unsupported";
+	}
+	renderStatus();
 };
 
 bootSensors();
