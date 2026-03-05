@@ -1,10 +1,14 @@
 // sw.js
-const CACHE_NAME = 'pfd-cache-v3';
+const CACHE_NAME = 'pfd-cache-v4';
 const ASSETS = [
     './',
     './index.html',
     './manifest.webmanifest',
     './sw.js',
+    './assets/icons/icon-192.png',
+    './assets/icons/icon-512.png',
+    './assets/icons/icon-192-maskable.png',
+    './assets/icons/icon-512-maskable.png',
     './assets/css/style.css',
     './assets/js/main.js',
     './assets/js/pfd.js',
