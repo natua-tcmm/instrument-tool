@@ -1,5 +1,5 @@
 // sw.js
-const CACHE_NAME = 'pfd-cache-v5';
+const CACHE_NAME = 'pfd-cache-v6';
 const ASSETS = [
     './',
     './index.html',

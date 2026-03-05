@@ -68,13 +68,52 @@ export function createGeoSensor({ onFirstFix, onError, onUnsupported } = {}) {
 	let lastTime = null;
 	let emaVspd = null;
 	let fixed = false;
+	let watchId = null;
+	let firstFixTimerId = null;
 	const VSPD_ALPHA = 0.25;
+	const FIRST_FIX_TIMEOUT_MS = 25000;
+
+	const clearFirstFixTimer = () => {
+		if (firstFixTimerId != null) {
+			clearTimeout(firstFixTimerId);
+			firstFixTimerId = null;
+		}
+	};
+
+	const scheduleFirstFixTimer = () => {
+		clearFirstFixTimer();
+		firstFixTimerId = setTimeout(() => {
+			if (!fixed) {
+				onError?.({ status: "timeout" });
+			}
+		}, FIRST_FIX_TIMEOUT_MS);
+	};
+
+	const stop = () => {
+		clearFirstFixTimer();
+		if (watchId != null) {
+			navigator.geolocation.clearWatch(watchId);
+			watchId = null;
+		}
+	};
+
+	const resetTrackingState = () => {
+		lastLL = null;
+		lastAlt = null;
+		lastTime = null;
+		emaVspd = null;
+		fixed = false;
+	};
 
 	const start = () => {
 		if (!("geolocation" in navigator)) {
 			onUnsupported?.();
 			return { ok: false, status: "unsupported" };
 		}
+
+		stop();
+		resetTrackingState();
+		scheduleFirstFixTimer();
 
 		// 機内モード時はGNSSのコールドスタートで初回測位に時間がかかるため、
 		// timeoutを長めにして即エラー扱いを避ける
@@ -83,7 +122,15 @@ export function createGeoSensor({ onFirstFix, onError, onUnsupported } = {}) {
 			maximumAge: 30000,
 			timeout: 120000,
 		};
-		navigator.geolocation.watchPosition(onGeo, onGeoError, options);
+
+		// 初回fixを早めるため単発取得も並行して叩く
+		navigator.geolocation.getCurrentPosition(onGeo, onGeoError, {
+			enableHighAccuracy: true,
+			maximumAge: 0,
+			timeout: FIRST_FIX_TIMEOUT_MS,
+		});
+
+		watchId = navigator.geolocation.watchPosition(onGeo, onGeoError, options);
 		return { ok: true, status: "watching" };
 	};
 
@@ -98,6 +145,7 @@ export function createGeoSensor({ onFirstFix, onError, onUnsupported } = {}) {
 	const onGeo = (position) => {
 		if (!fixed) {
 			fixed = true;
+			clearFirstFixTimer();
 			onFirstFix?.(position);
 		}
 
@@ -166,5 +214,5 @@ export function createGeoSensor({ onFirstFix, onError, onUnsupported } = {}) {
 			: "—";
 	};
 
-	return { start };
+	return { start, stop, retry: start };
 }
