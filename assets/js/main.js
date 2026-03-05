@@ -19,8 +19,6 @@ const gpsLabel = {
 	fixed: "GPS: 計測中",
 	denied: "GPS: 権限拒否",
 	unsupported: "GPS: 非対応",
-	timeout: "GPS: 取得待ち（時間超過。屋外で再試行）",
-	unavailable: "GPS: 取得不可（機内モード時は位置情報をON）",
 	error: "GPS: 取得エラー",
 };
 
@@ -55,15 +53,7 @@ const geoSensor = createGeoSensor({
 		renderStatus();
 	},
 	onError: ({ status }) => {
-		if (status === "denied") {
-			appState.gps = "denied";
-		} else if (status === "timeout") {
-			appState.gps = "timeout";
-		} else if (status === "unavailable") {
-			appState.gps = "unavailable";
-		} else {
-			appState.gps = "error";
-		}
+		appState.gps = status === "denied" ? "denied" : "error";
 		renderStatus();
 	},
 	onUnsupported: () => {
