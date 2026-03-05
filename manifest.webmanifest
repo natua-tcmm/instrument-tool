@@ -1,6 +1,6 @@
 {
-    "name": "計器レイアウト",
-    "short_name": "計器",
+    "name": "シンプルGPS計器",
+    "short_name": "GPS計器",
     "start_url": "./",
     "scope": "./",
     "display": "standalone",

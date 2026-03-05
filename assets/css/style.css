@@ -109,3 +109,7 @@ button:disabled {
     margin-top: 6px;
     opacity: .8;
 }
+
+.creator {
+    text-align: center;
+}

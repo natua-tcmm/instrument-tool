@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="./manifest.webmanifest">
-    <title>計器レイアウト（オフライン対応）</title>
+    <title>シンプルGPS計器</title>
     <link rel="stylesheet" href="./assets/css/style.css">
 </head>
 
@@ -63,10 +63,13 @@
                     <button id="zeroBtn" disabled>ZERO</button>
                 </div>
                 <div class="note" id="env">HTTPSで開いてください。</div>
-                <p>GPSセンサーの情報から、速度(SPD)・高度(ALT)・移動方位(HDG)(正確には対地航跡・TRACK)・昇降率(VSPD)を表示します。</p>
-                <p>「ANGLE ON」を押すと端末の角度センサーの情報を表示します。「ZERO」を押すとその角度が基準になります。</p>
-                <p>このアプリは完全にローカル端末上で動作します。「ホーム画面に追加」を行うと、以降は機内モードでも使用できます。もちろん、インターネットとの通信は一切行われません。</p>
-                <p>制作者: @natua_tcmm</p>
+                <details class="note" id="guide">
+                    <summary>説明を表示</summary>
+                    <p class="note">GPSセンサーの情報から、速度(SPD)・高度(ALT)・移動方位(HDG)(正確には対地航跡・TRACK)・昇降率(VSPD)を表示します。</p>
+                    <p class="note">「ANGLE ON」を押すと端末の角度センサーの情報を表示します。「ZERO」を押すとその角度が基準になります。</p>
+                    <p class="note">このアプリは完全にローカル端末上で動作します。「ホーム画面に追加」を行うと、以降は機内モードでも使用できます。もちろん、インターネットとの通信は一切行われません。</p>
+                </details>
+                <p class="creator">制作者: @natua_tcmm</p>
             </section>
         </div>
     </main>
