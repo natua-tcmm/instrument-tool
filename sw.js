@@ -1,5 +1,5 @@
 // sw.js
-const CACHE_NAME = 'pfd-cache-v2';
+const CACHE_NAME = 'pfd-cache-v3';
 const ASSETS = [
     './',
     './index.html',
@@ -31,14 +31,29 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
     if (event.request.method !== 'GET') return;
+
+    const request = event.request;
+    const url = new URL(request.url);
+
     event.respondWith(
-        caches.match(event.request).then(cached => {
-            const fetchPromise = fetch(event.request).then(resp => {
-                const copy = resp.clone();
-                caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+        fetch(request)
+            .then(resp => {
+                if (url.origin === self.location.origin && resp.ok) {
+                    const copy = resp.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+                }
                 return resp;
-            }).catch(() => cached);
-            return cached || fetchPromise;
-        })
+            })
+            .catch(async () => {
+                const cached = await caches.match(request);
+                if (cached) return cached;
+
+                if (request.mode === 'navigate') {
+                    const fallback = await caches.match('./index.html');
+                    if (fallback) return fallback;
+                }
+
+                throw new Error('Network error and no cache available');
+            })
     );
 });
