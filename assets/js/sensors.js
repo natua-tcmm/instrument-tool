@@ -67,8 +67,20 @@ export function createGeoSensor({ onFirstFix, onError, onUnsupported } = {}) {
 	let lastAlt = null;
 	let lastTime = null;
 	let emaVspd = null;
+	let stableVspdSamples = 0;
 	let fixed = false;
 	const VSPD_ALPHA = 0.25;
+	const MIN_VSPD_DT = 1;
+	const MAX_ALTITUDE_ACCURACY = 50;
+	const MAX_RAW_VSPD = 100;
+	const REQUIRED_VSPD_SAMPLES = 2;
+
+	const resetVspd = () => {
+		lastAlt = null;
+		lastTime = null;
+		emaVspd = null;
+		stableVspdSamples = 0;
+	};
 
 	const start = () => {
 		if (!("geolocation" in navigator)) {
@@ -107,21 +119,43 @@ export function createGeoSensor({ onFirstFix, onError, onUnsupported } = {}) {
 
 		// 高度と昇降率
 		const altitude = Number.isFinite(c.altitude) ? c.altitude : NaN;
+		const altitudeAccuracy = Number.isFinite(c.altitudeAccuracy)
+			? c.altitudeAccuracy
+			: NaN;
 		let verticalSpeed = NaN;
 		if (Number.isFinite(altitude)) {
-			if (lastAlt != null && lastTime != null) {
+			const altitudeReliable =
+				!Number.isFinite(altitudeAccuracy) || altitudeAccuracy <= MAX_ALTITUDE_ACCURACY;
+
+			if (!altitudeReliable) {
+				resetVspd();
+			} else if (lastAlt != null && lastTime != null) {
 				const dt = (position.timestamp - lastTime) / 1000;
-				if (dt > 0) {
+				if (dt >= MIN_VSPD_DT) {
 					const raw = (altitude - lastAlt) / dt;
-					emaVspd =
-						emaVspd == null
-							? raw
-							: VSPD_ALPHA * raw + (1 - VSPD_ALPHA) * emaVspd;
-					verticalSpeed = emaVspd;
+					if (Math.abs(raw) <= MAX_RAW_VSPD) {
+						emaVspd =
+							emaVspd == null
+								? raw
+								: VSPD_ALPHA * raw + (1 - VSPD_ALPHA) * emaVspd;
+						stableVspdSamples += 1;
+						if (stableVspdSamples >= REQUIRED_VSPD_SAMPLES) {
+							verticalSpeed = emaVspd;
+						}
+					} else {
+						emaVspd = null;
+						stableVspdSamples = 0;
+					}
 				}
+
+				lastAlt = altitude;
+				lastTime = position.timestamp;
+			} else {
+				lastAlt = altitude;
+				lastTime = position.timestamp;
 			}
-			lastAlt = altitude;
-			lastTime = position.timestamp;
+		} else {
+			resetVspd();
 		}
 
 		// 方位
